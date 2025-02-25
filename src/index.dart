@@ -1,5 +1,6 @@
 import "dart:io"; // Like FileSystem in Node.js
-import 'dart:convert'; // it necessary to serialize JSON files
+import 'dart:convert';
+import 'dart:math'; // it necessary to serialize JSON files
 
 void main(List<String> arguments) {
   Application app = new Application(arguments);
@@ -10,6 +11,26 @@ void main(List<String> arguments) {
 mixin NormalizeStrings {
   String HandleNormalizeStrings(String string) {
     return string.toLowerCase();
+  }
+}
+
+mixin GenerateTaskId {
+  int HandleGenerateId(List<dynamic> list)  {
+    // Unfortunatelly, I was tricked! in Dart, the arrow notation is used only
+    // in single expression or statements, differently from JavaScript!
+    // If I write () => {}, it is as return a Set<T>! Only brances is necessary
+    // in anonymous functions.
+
+    // to read more about "toList()" method!
+    final List<int> idList = list.map<int>((id) => id["id"]).toList();
+
+    final int id = idList.reduce((value, element) {
+      if(value.isNaN) value = 1;
+      
+      return max(value , element) + 1;
+    });
+
+    return id;
   }
 }
 
@@ -31,7 +52,7 @@ class Application {
   }
 }
 
-class AddTask with NormalizeStrings {
+class AddTask with NormalizeStrings,GenerateTaskId {
   final String listName;
   final String ItemName;
 
@@ -44,12 +65,15 @@ class AddTask with NormalizeStrings {
 
       if (list.existsSync()) {
         final String fileContent = await list.readAsString();
-        final List fileContentDecoded = jsonDecode(fileContent);
-        final Map<String, dynamic> taskContent = {"name": ItemName};
+        final List<dynamic> fileContentDecoded = jsonDecode(fileContent);
+        final Map<String, dynamic> taskContent = {
+          "name": ItemName,
+          "id": HandleGenerateId(fileContentDecoded)
+        };
 
         fileContentDecoded.add(taskContent);
 
-        final encodedContent = jsonEncode(fileContentDecoded);
+        final String encodedContent = jsonEncode(fileContentDecoded);
         await list.writeAsString(encodedContent);
 
         // make sure you do not confuse "jsonDecode" with "JsonDecoder" again...
@@ -59,8 +83,11 @@ class AddTask with NormalizeStrings {
         await newList.HandleCreateList();
 
         final String fileContent = await list.readAsString(encoding: utf8);
-        final List fileContentDecoded = jsonDecode(fileContent);
-        final Map<String, dynamic> taskContent = {"name": ItemName};
+        final List<dynamic> fileContentDecoded = jsonDecode(fileContent);
+        final Map<String, dynamic> taskContent = {
+          "name": ItemName,
+          "id": 0,
+        };
 
         fileContentDecoded.add(taskContent);
 
@@ -74,7 +101,9 @@ class AddTask with NormalizeStrings {
   }
 }
 
-class DeleteTask {}
+class DeleteTask {
+
+}
 
 class AddDeadline {}
 
