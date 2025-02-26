@@ -15,7 +15,7 @@ mixin NormalizeStrings {
 }
 
 mixin GenerateTaskId {
-  int HandleGenerateId(List<dynamic> list) {
+  int HandleGenerateId(int previousId) {
     // STUDY NOTES =============================================================
     // Unfortunatelly, I was tricked! in Dart, the arrow notation is used only
     // in single expression or statements, differently from JavaScript!
@@ -24,15 +24,7 @@ mixin GenerateTaskId {
     // STUDY NOTES =============================================================
 
     // to read more about "toList()" method!
-    final List<int> idList = list.map<int>((id) => id["id"]).toList();
-
-    final int id = idList.reduce((value, element) {
-      if (value.isNaN) value = 1;
-
-      return max(value, element) + 1;
-    });
-
-    return id;
+    return previousId + 1;
   }
 }
 
@@ -62,7 +54,7 @@ class AddTask with NormalizeStrings, GenerateTaskId {
   final String ItemName;
 
   AddTask(this.listName, this.ItemName);
-  //
+ 
   void HandleAddTask() async {
     try {
       final String jsonListName = HandleNormalizeStrings('$listName');
@@ -71,9 +63,11 @@ class AddTask with NormalizeStrings, GenerateTaskId {
       if (list.existsSync()) {
         final String fileContent = await list.readAsString();
         final List<dynamic> fileContentDecoded = jsonDecode(fileContent);
+        final List idList = fileContentDecoded.map((item) => item["id"]).toList();
+        final int maxId = idList.reduce((prev, next) => max(prev, next));
         final Map<String, dynamic> taskContent = {
           "name": ItemName,
-          "id": HandleGenerateId(fileContentDecoded),
+          "id": HandleGenerateId(maxId),
         };
 
         fileContentDecoded.add(taskContent);
@@ -89,7 +83,7 @@ class AddTask with NormalizeStrings, GenerateTaskId {
 
         final String fileContent = await list.readAsString(encoding: utf8);
         final List<dynamic> fileContentDecoded = jsonDecode(fileContent);
-        final Map<String, dynamic> taskContent = {"name": ItemName, "id": 0};
+        final Map<String, dynamic> taskContent = {"name": ItemName, "id": 1};
 
         fileContentDecoded.add(taskContent);
 
