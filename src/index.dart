@@ -15,19 +15,21 @@ mixin NormalizeStrings {
 }
 
 mixin GenerateTaskId {
-  int HandleGenerateId(List<dynamic> list)  {
+  int HandleGenerateId(List<dynamic> list) {
+    // STUDY NOTES =============================================================
     // Unfortunatelly, I was tricked! in Dart, the arrow notation is used only
     // in single expression or statements, differently from JavaScript!
     // If I write () => {}, it is as return a Set<T>! Only brances is necessary
     // in anonymous functions.
+    // STUDY NOTES =============================================================
 
     // to read more about "toList()" method!
     final List<int> idList = list.map<int>((id) => id["id"]).toList();
 
     final int id = idList.reduce((value, element) {
-      if(value.isNaN) value = 1;
-      
-      return max(value , element) + 1;
+      if (value.isNaN) value = 1;
+
+      return max(value, element) + 1;
     });
 
     return id;
@@ -45,6 +47,9 @@ class Application {
       case "add":
         AddTask operation = AddTask(arguments[1], arguments[2]);
         operation.HandleAddTask();
+      case "delete":
+        DeleteTask operation = DeleteTask(arguments[1], int.parse(arguments[2]));
+        operation.HandleDeleteTask();
       default:
         throw "None correspondent operation";
     }
@@ -52,7 +57,7 @@ class Application {
   }
 }
 
-class AddTask with NormalizeStrings,GenerateTaskId {
+class AddTask with NormalizeStrings, GenerateTaskId {
   final String listName;
   final String ItemName;
 
@@ -68,7 +73,7 @@ class AddTask with NormalizeStrings,GenerateTaskId {
         final List<dynamic> fileContentDecoded = jsonDecode(fileContent);
         final Map<String, dynamic> taskContent = {
           "name": ItemName,
-          "id": HandleGenerateId(fileContentDecoded)
+          "id": HandleGenerateId(fileContentDecoded),
         };
 
         fileContentDecoded.add(taskContent);
@@ -84,10 +89,7 @@ class AddTask with NormalizeStrings,GenerateTaskId {
 
         final String fileContent = await list.readAsString(encoding: utf8);
         final List<dynamic> fileContentDecoded = jsonDecode(fileContent);
-        final Map<String, dynamic> taskContent = {
-          "name": ItemName,
-          "id": 0,
-        };
+        final Map<String, dynamic> taskContent = {"name": ItemName, "id": 0};
 
         fileContentDecoded.add(taskContent);
 
@@ -101,8 +103,31 @@ class AddTask with NormalizeStrings,GenerateTaskId {
   }
 }
 
-class DeleteTask {
+class DeleteTask with NormalizeStrings {
+  final String listName;
+  final int taskId; 
 
+  DeleteTask(this.listName, this.taskId);
+
+  void HandleDeleteTask() async {
+    try {
+      final File file = File('./lists/${HandleNormalizeStrings(listName)}.json');
+
+      if (file.existsSync()) {
+        final String fileContent = await file.readAsString();
+        final List<dynamic> decodedContent = jsonDecode(fileContent);
+        final List<dynamic> newList = decodedContent.where((item) {
+          return item["id"] != taskId;
+        }).toList();
+        final sourceEncoded = jsonEncode(newList);
+        await file.writeAsString(sourceEncoded);
+
+        print('item deleted succesfully!');
+      }
+    } catch (err, stack) {
+      throw 'An error ocurred: $err. The stack: $stack';
+    }
+  }
 }
 
 class AddDeadline {}
