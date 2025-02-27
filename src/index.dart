@@ -9,7 +9,7 @@ import '../utils/validateDate.dart';
 // instance, because the "arguments" does not accept null arguments, triggering
 // an error... the value "no-date" fulfils the deadline field with: ""(empty string).
 void main(List<String> arguments) {
-  Application app = new Application(arguments);
+  Application app = Application(arguments);
 
   app.executeProgram();
 }
@@ -85,7 +85,7 @@ class AddTask {
 
         // make sure you do not confuse "jsonDecode" with "JsonDecoder" again...
       } else {
-        CreateList? newList = new CreateList(listName);
+        CreateList? newList = CreateList(listName);
 
         await newList.createList();
 
