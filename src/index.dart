@@ -147,9 +147,8 @@ class AddDeadline {
           decodedSource.map((item) {
             if (item["id"] == num.parse(itemId)) {
               item["deadline"] = getDate(itemDeadline);
-              return item;
-            }
-            ;
+         
+            };
 
             return item;
           }).toList();
