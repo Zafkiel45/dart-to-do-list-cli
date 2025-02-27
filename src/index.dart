@@ -1,13 +1,10 @@
-import "dart:io"; // Like FileSystem in Node.js
+import "dart:io"; 
 import 'dart:convert';
-import 'dart:math'; // it necessary to serialize JSON files
+import 'dart:math'; 
 import '../utils/generateId.dart';
 import '../utils/normalizeStrings.dart';
 import '../utils/validateDate.dart';
 
-// The deadline argument should not be mandatory, but this was needed in first
-// instance, because the "arguments" does not accept null arguments, triggering
-// an error... the value "no-date" fulfils the deadline field with: ""(empty string).
 void main(List<String> arguments) {
   Application app = Application(arguments);
 
@@ -82,8 +79,6 @@ class AddTask {
 
         final String encodedContent = jsonEncode(fileContentDecoded);
         await list.writeAsString(encodedContent);
-
-        // make sure you do not confuse "jsonDecode" with "JsonDecoder" again...
       } else {
         CreateList? newList = CreateList(listName);
 
