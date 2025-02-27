@@ -1,6 +1,7 @@
-import "dart:io"; 
+import "dart:io";
 import 'dart:convert';
-import 'dart:math'; 
+import 'dart:math';
+import '../utils/fileExists.dart';
 import '../utils/generateId.dart';
 import '../utils/normalizeStrings.dart';
 import '../utils/validateDate.dart';
@@ -23,14 +24,15 @@ class Application {
         case "add":
           AddTask(arguments[1], arguments[2], arguments[3]).addTask();
         case "delete":
-          DeleteTask(arguments[1],int.parse(arguments[2])).deleteTask();
+          DeleteTask(arguments[1], int.parse(arguments[2])).deleteTask();
         case "deadline":
-          AddDeadline(arguments[1],arguments[2],arguments[3]).addDealine();
+          AddDeadline(arguments[1], arguments[2], arguments[3]).addDealine();
         default:
           print("❌ Invalid operation");
-      };
+      }
+      ;
     } catch (err, stack) {
-      throw "❗❗❗ An error ocurried: ➡️ $err ➡️ $stack";
+      print("❗ Error: $err\nStack trace:\n$stack");
     }
   }
 }
@@ -47,7 +49,7 @@ class AddTask {
       final String jsonListName = normalizeStrings('$listName');
       final File list = File('./lists/${jsonListName}.json');
 
-      if (list.existsSync()) {
+      if (await fileExists(list)) {
         final String fileContent = await list.readAsString();
         final List<dynamic> fileContentDecoded = jsonDecode(fileContent);
         final List idList =
@@ -104,11 +106,9 @@ class DeleteTask {
 
   void deleteTask() async {
     try {
-      final File file = File(
-        './lists/${normalizeStrings(listName)}.json',
-      );
+      final File file = File('./lists/${normalizeStrings(listName)}.json');
 
-      if (file.existsSync()) {
+      if (await fileExists(file)) {
         final String fileContent = await file.readAsString();
         final List<dynamic> decodedContent = jsonDecode(fileContent);
         final List<dynamic> newList =
@@ -119,6 +119,9 @@ class DeleteTask {
         await file.writeAsString(sourceEncoded);
 
         print('item deleted succesfully!');
+      } else {
+        print("❌ File not found!");
+        return;
       }
     } catch (err, stack) {
       throw 'An error ocurred: $err. The stack: $stack';
