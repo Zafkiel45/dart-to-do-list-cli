@@ -28,6 +28,8 @@ class Application {
           DeleteTask(arguments[1], int.parse(arguments[2])).deleteTask();
         case "deadline":
           AddDeadline(arguments[1], arguments[2], arguments[3]).addDealine();
+        case "show":
+          ShowList(arguments[1]).list();
         default:
           print("❌ Invalid operation");
       }
@@ -52,7 +54,8 @@ class AddTask {
 
       final List<dynamic> fileContent = jsonDecode(await list.readAsString());
       final List idList = fileContent.map((item) => item["id"]).toList();
-      final int maxId = idList.isEmpty ? 0 : idList.reduce((prev, next) => max(prev, next));
+      final int maxId =
+          idList.isEmpty ? 0 : idList.reduce((prev, next) => max(prev, next));
 
       final DateTime taskBirth = DateTime.now();
 
@@ -133,6 +136,47 @@ class AddDeadline {
       await file.writeAsString(jsonEncode(updatedList));
     } catch (err, stack) {
       throw "❌ $err \n ❌ $stack";
+    }
+  }
+}
+
+class ShowList {
+  final String listName;
+
+  ShowList(this.listName);
+  void list() async {
+    final File file = File('./lists/$listName.json');
+
+    try {
+      if (await fileExists(file)) {
+        final List<dynamic> fileContent = jsonDecode(await file.readAsString());
+
+        const List<String> listHeader = ['name', 'id', 'createdAt', 'deadline'];
+
+        String header = '';
+        String line = '';
+
+        for (String item in listHeader) {
+          header += item.padRight(25) + "|";
+        }
+        ;
+
+        for (Map<String, dynamic> item in fileContent) {
+          List<String> fields = ['name', 'id', 'createdAt', 'deadline'];
+
+          for (String field in fields) {
+            line += (item["$field"].toString()).padRight(25) + "|";
+          }
+          ;
+
+          line += "\n";
+        }
+
+        print(header);
+        print(line);
+      }
+    } catch (err, stack) {
+      print('❌ $err \n ❌ $stack');
     }
   }
 }
