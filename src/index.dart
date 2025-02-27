@@ -92,8 +92,8 @@ class AddTask {
 
         await list.writeAsString(encodedContent);
       }
-    } catch (exception, stack) {
-      print("An error occurent: $exception in the stack: $stack");
+    } catch (err, stack) {
+      print("❌ $err \n ❌ $stack");
     }
   }
 }
@@ -124,7 +124,7 @@ class DeleteTask {
         return;
       }
     } catch (err, stack) {
-      throw 'An error ocurred: $err. The stack: $stack';
+      throw '❌ $err\n ❌ $stack';
     }
   }
 }
@@ -156,7 +156,7 @@ class AddDeadline {
 
       await file.writeAsString(jsonEncode(updatedList));
     } catch (err, stack) {
-      throw "An error ocurried: $err, $stack";
+      throw "❌ $err \n ❌ $stack";
     }
   }
 }
@@ -175,8 +175,8 @@ class CreateList {
       await list.writeAsString(defaultListValue);
 
       print('list: ${list.path} was created successfuly!');
-    } catch (exception, stack) {
-      print("An error occurent: $exception in the stack: $stack");
+    } catch (err, stack) {
+      print("❌ $err\n ❌ $stack");
     }
   }
 }
