@@ -65,9 +65,13 @@ class AddTask with NormalizeStrings, GenerateTaskId {
         final List<dynamic> fileContentDecoded = jsonDecode(fileContent);
         final List idList = fileContentDecoded.map((item) => item["id"]).toList();
         final int maxId = idList.reduce((prev, next) => max(prev, next));
+        
+        final DateTime taskBirth = DateTime.now();
+        
         final Map<String, dynamic> taskContent = {
           "name": ItemName,
           "id": HandleGenerateId(maxId),
+          "createdAt": "${taskBirth.year}/${taskBirth.month}/${taskBirth.day}"
         };
 
         fileContentDecoded.add(taskContent);
@@ -83,7 +87,14 @@ class AddTask with NormalizeStrings, GenerateTaskId {
 
         final String fileContent = await list.readAsString(encoding: utf8);
         final List<dynamic> fileContentDecoded = jsonDecode(fileContent);
-        final Map<String, dynamic> taskContent = {"name": ItemName, "id": 1};
+
+        final DateTime taskBirth = DateTime.now();
+
+        final Map<String, dynamic> taskContent = {
+          "name": ItemName, 
+          "id": 1,
+          "createdAt": "${taskBirth.year}/${taskBirth.month}/${taskBirth.day}"
+          };
 
         fileContentDecoded.add(taskContent);
 
@@ -124,7 +135,9 @@ class DeleteTask with NormalizeStrings {
   }
 }
 
-class AddDeadline {}
+class AddDeadline {
+
+}
 
 class CreateList {
   final String listName;
