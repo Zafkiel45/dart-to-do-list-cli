@@ -1,6 +1,8 @@
 import "dart:io"; // Like FileSystem in Node.js
 import 'dart:convert';
 import 'dart:math'; // it necessary to serialize JSON files
+import '../utils/generateId.dart';
+import '../utils/normalizeStrings.dart';
 import '../utils/validateDate.dart';
 
 // The deadline argument should not be mandatory, but this was needed in first
@@ -10,26 +12,6 @@ void main(List<String> arguments) {
   Application app = new Application(arguments);
 
   app.executeProgram();
-}
-
-mixin NormalizeStrings {
-  String HandleNormalizeStrings(String string) {
-    return string.toLowerCase();
-  }
-}
-
-mixin GenerateTaskId {
-  int HandleGenerateId(int previousId) {
-    // STUDY NOTES =============================================================
-    // Unfortunatelly, I was tricked! in Dart, the arrow notation is used only
-    // in single expression or statements, differently from JavaScript!
-    // If I write () => {}, it is as return a Set<T>! Only brances is necessary
-    // in anonymous functions.
-    // STUDY NOTES =============================================================
-
-    // to read more about "toList()" method!
-    return previousId + 1;
-  }
 }
 
 class Application {
@@ -68,7 +50,7 @@ class Application {
   }
 }
 
-class AddTask with NormalizeStrings, GenerateTaskId {
+class AddTask {
   final String listName;
   final String ItemName;
   final String itemDeadline;
@@ -77,7 +59,7 @@ class AddTask with NormalizeStrings, GenerateTaskId {
 
   void HandleAddTask() async {
     try {
-      final String jsonListName = HandleNormalizeStrings('$listName');
+      final String jsonListName = normalizeStrings('$listName');
       final File list = File('./lists/${jsonListName}.json');
 
       if (list.existsSync()) {
@@ -91,7 +73,7 @@ class AddTask with NormalizeStrings, GenerateTaskId {
 
         final Map<String, dynamic> taskContent = {
           "name": ItemName,
-          "id": HandleGenerateId(maxId),
+          "id": generateTaskId(maxId),
           "createdAt": "${taskBirth.year}-${taskBirth.month}-${taskBirth.day}",
           "deadline": HandleGetDate(itemDeadline),
         };
@@ -131,7 +113,7 @@ class AddTask with NormalizeStrings, GenerateTaskId {
   }
 }
 
-class DeleteTask with NormalizeStrings {
+class DeleteTask {
   final String listName;
   final int taskId;
 
@@ -140,7 +122,7 @@ class DeleteTask with NormalizeStrings {
   void HandleDeleteTask() async {
     try {
       final File file = File(
-        './lists/${HandleNormalizeStrings(listName)}.json',
+        './lists/${normalizeStrings(listName)}.json',
       );
 
       if (file.existsSync()) {
