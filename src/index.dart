@@ -1,7 +1,11 @@
 import "dart:io"; // Like FileSystem in Node.js
 import 'dart:convert';
 import 'dart:math'; // it necessary to serialize JSON files
+import '../utils/validateDate.dart';
 
+// The deadline argument should not be mandatory, but this was needed in first
+// instance, because the "arguments" does not accept null arguments, triggering
+// an error... the value "no-date" fulfils the deadline field with: ""(empty string).
 void main(List<String> arguments) {
   Application app = new Application(arguments);
 
@@ -35,26 +39,36 @@ class Application {
   Application(this.arguments);
 
   void executeProgram() {
-    switch (arguments[0]) {
-      case "add":
-        AddTask operation = AddTask(arguments[1], arguments[2]);
-        operation.HandleAddTask();
-      case "delete":
-        DeleteTask operation = DeleteTask(arguments[1], int.parse(arguments[2]));
-        operation.HandleDeleteTask();
-      default:
-        throw "None correspondent operation";
+    try {
+      switch (arguments[0]) {
+        case "add":
+          if (arguments[3].isEmpty) arguments[3] = "";
+
+          AddTask operation = AddTask(arguments[1], arguments[2], arguments[3]);
+          operation.HandleAddTask();
+        case "delete":
+          DeleteTask operation = DeleteTask(
+            arguments[1],
+            int.parse(arguments[2]),
+          );
+          operation.HandleDeleteTask();
+        default:
+          throw "None correspondent operation";
+      }
+      ;
+    } catch (err, stack) {
+      throw "❗❗❗ An error ocurried: ➡️ $err ➡️ $stack";
     }
-    ;
   }
 }
 
 class AddTask with NormalizeStrings, GenerateTaskId {
   final String listName;
   final String ItemName;
+  final String itemDeadline;
 
-  AddTask(this.listName, this.ItemName);
- 
+  AddTask(this.listName, this.ItemName, this.itemDeadline);
+
   void HandleAddTask() async {
     try {
       final String jsonListName = HandleNormalizeStrings('$listName');
@@ -63,15 +77,17 @@ class AddTask with NormalizeStrings, GenerateTaskId {
       if (list.existsSync()) {
         final String fileContent = await list.readAsString();
         final List<dynamic> fileContentDecoded = jsonDecode(fileContent);
-        final List idList = fileContentDecoded.map((item) => item["id"]).toList();
+        final List idList =
+            fileContentDecoded.map((item) => item["id"]).toList();
         final int maxId = idList.reduce((prev, next) => max(prev, next));
-        
+
         final DateTime taskBirth = DateTime.now();
-        
+
         final Map<String, dynamic> taskContent = {
           "name": ItemName,
           "id": HandleGenerateId(maxId),
-          "createdAt": "${taskBirth.year}/${taskBirth.month}/${taskBirth.day}"
+          "createdAt": "${taskBirth.year}-${taskBirth.month}-${taskBirth.day}",
+          "deadline": HandleGetDate(itemDeadline),
         };
 
         fileContentDecoded.add(taskContent);
@@ -91,10 +107,11 @@ class AddTask with NormalizeStrings, GenerateTaskId {
         final DateTime taskBirth = DateTime.now();
 
         final Map<String, dynamic> taskContent = {
-          "name": ItemName, 
+          "name": ItemName,
           "id": 1,
-          "createdAt": "${taskBirth.year}/${taskBirth.month}/${taskBirth.day}"
-          };
+          "createdAt": "${taskBirth.year}-${taskBirth.month}-${taskBirth.day}",
+          "deadline": HandleGetDate(itemDeadline),
+        };
 
         fileContentDecoded.add(taskContent);
 
@@ -110,20 +127,23 @@ class AddTask with NormalizeStrings, GenerateTaskId {
 
 class DeleteTask with NormalizeStrings {
   final String listName;
-  final int taskId; 
+  final int taskId;
 
   DeleteTask(this.listName, this.taskId);
 
   void HandleDeleteTask() async {
     try {
-      final File file = File('./lists/${HandleNormalizeStrings(listName)}.json');
+      final File file = File(
+        './lists/${HandleNormalizeStrings(listName)}.json',
+      );
 
       if (file.existsSync()) {
         final String fileContent = await file.readAsString();
         final List<dynamic> decodedContent = jsonDecode(fileContent);
-        final List<dynamic> newList = decodedContent.where((item) {
-          return item["id"] != taskId;
-        }).toList();
+        final List<dynamic> newList =
+            decodedContent.where((item) {
+              return item["id"] != taskId;
+            }).toList();
         final sourceEncoded = jsonEncode(newList);
         await file.writeAsString(sourceEncoded);
 
@@ -135,9 +155,7 @@ class DeleteTask with NormalizeStrings {
   }
 }
 
-class AddDeadline {
-
-}
+class AddDeadline {}
 
 class CreateList {
   final String listName;
