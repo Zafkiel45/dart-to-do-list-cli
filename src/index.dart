@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import '../utils/fileExists.dart';
 import '../utils/generateId.dart';
+import '../utils/getOrCreateFile.dart';
 import '../utils/normalizeStrings.dart';
 import '../utils/validateDate.dart';
 
@@ -47,51 +48,27 @@ class AddTask {
   void addTask() async {
     try {
       final String jsonListName = normalizeStrings('$listName');
-      final File list = File('./lists/${jsonListName}.json');
+      final File list = await getOrCreateFile('./lists/${jsonListName}.json');
 
-      if (await fileExists(list)) {
-        final String fileContent = await list.readAsString();
-        final List<dynamic> fileContentDecoded = jsonDecode(fileContent);
-        final List idList =
-            fileContentDecoded.map((item) => item["id"]).toList();
-        final int maxId = idList.reduce((prev, next) => max(prev, next));
+      final List<dynamic> fileContent = jsonDecode(await list.readAsString());
+      final List idList = fileContent.map((item) => item["id"]).toList();
+      final int maxId = idList.isEmpty ? 0 : idList.reduce((prev, next) => max(prev, next));
 
-        final DateTime taskBirth = DateTime.now();
+      final DateTime taskBirth = DateTime.now();
 
-        final Map<String, dynamic> taskContent = {
-          "name": ItemName,
-          "id": generateTaskId(maxId),
-          "createdAt": "${taskBirth.year}-${taskBirth.month}-${taskBirth.day}",
-          "deadline": getDate(itemDeadline),
-        };
+      final Map<String, dynamic> taskContent = {
+        "name": ItemName,
+        "id": generateTaskId(maxId),
+        "createdAt": "${taskBirth.year}-${taskBirth.month}-${taskBirth.day}",
+        "deadline": getDate(itemDeadline),
+      };
 
-        fileContentDecoded.add(taskContent);
+      fileContent.add(taskContent);
 
-        final String encodedContent = jsonEncode(fileContentDecoded);
-        await list.writeAsString(encodedContent);
-      } else {
-        CreateList? newList = CreateList(listName);
+      final String encodedContent = jsonEncode(fileContent);
+      await list.writeAsString(encodedContent);
 
-        await newList.createList();
-
-        final String fileContent = await list.readAsString(encoding: utf8);
-        final List<dynamic> fileContentDecoded = jsonDecode(fileContent);
-
-        final DateTime taskBirth = DateTime.now();
-
-        final Map<String, dynamic> taskContent = {
-          "name": ItemName,
-          "id": 1,
-          "createdAt": "${taskBirth.year}-${taskBirth.month}-${taskBirth.day}",
-          "deadline": getDate(itemDeadline),
-        };
-
-        fileContentDecoded.add(taskContent);
-
-        final encodedContent = jsonEncode(fileContentDecoded);
-
-        await list.writeAsString(encodedContent);
-      }
+      print("✅ Task added successfully!");
     } catch (err, stack) {
       print("❌ $err \n ❌ $stack");
     }
@@ -147,8 +124,8 @@ class AddDeadline {
           decodedSource.map((item) {
             if (item["id"] == num.parse(itemId)) {
               item["deadline"] = getDate(itemDeadline);
-         
-            };
+            }
+            ;
 
             return item;
           }).toList();
@@ -156,26 +133,6 @@ class AddDeadline {
       await file.writeAsString(jsonEncode(updatedList));
     } catch (err, stack) {
       throw "❌ $err \n ❌ $stack";
-    }
-  }
-}
-
-class CreateList {
-  final String listName;
-
-  CreateList(this.listName);
-
-  Future createList() async {
-    try {
-      final File list = File('./lists/${this.listName}.json');
-      final String defaultListValue = jsonEncode([]);
-
-      await list.create();
-      await list.writeAsString(defaultListValue);
-
-      print('list: ${list.path} was created successfuly!');
-    } catch (err, stack) {
-      print("❌ $err\n ❌ $stack");
     }
   }
 }
