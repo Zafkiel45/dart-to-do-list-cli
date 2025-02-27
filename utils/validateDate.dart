@@ -1,4 +1,4 @@
-bool HandleValidateDate(String date) {
+bool validateDate(String date) {
   try {
     if(date.isEmpty) return false;
   
@@ -10,8 +10,8 @@ bool HandleValidateDate(String date) {
   }
 }
 
-String HandleGetDate(String date) {
-  if(HandleValidateDate(date)) return date;
+String getDate(String date) {
+  if(validateDate(date)) return date;
   else if(date == "no-date") return "";
   else return throw "Invalid Date... Please, use the format: [MM]-[DD]-[YYYY]";
 }

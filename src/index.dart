@@ -25,13 +25,13 @@ class Application {
       switch (arguments[0]) {
         case "add":
           AddTask operation = AddTask(arguments[1], arguments[2], arguments[3]);
-          operation.HandleAddTask();
+          operation.addTask();
         case "delete":
           DeleteTask operation = DeleteTask(
             arguments[1],
             int.parse(arguments[2]),
           );
-          operation.HandleDeleteTask();
+          operation.deleteTask();
         case "deadline":
           AddDeadline instance = AddDeadline(
             arguments[1],
@@ -39,7 +39,7 @@ class Application {
             arguments[3],
           );
 
-          instance.HandleAddDealine();
+          instance.addDealine();
         default:
           throw "None correspondent operation";
       }
@@ -57,7 +57,7 @@ class AddTask {
 
   AddTask(this.listName, this.ItemName, this.itemDeadline);
 
-  void HandleAddTask() async {
+  void addTask() async {
     try {
       final String jsonListName = normalizeStrings('$listName');
       final File list = File('./lists/${jsonListName}.json');
@@ -75,7 +75,7 @@ class AddTask {
           "name": ItemName,
           "id": generateTaskId(maxId),
           "createdAt": "${taskBirth.year}-${taskBirth.month}-${taskBirth.day}",
-          "deadline": HandleGetDate(itemDeadline),
+          "deadline": getDate(itemDeadline),
         };
 
         fileContentDecoded.add(taskContent);
@@ -87,7 +87,7 @@ class AddTask {
       } else {
         CreateList? newList = new CreateList(listName);
 
-        await newList.HandleCreateList();
+        await newList.createList();
 
         final String fileContent = await list.readAsString(encoding: utf8);
         final List<dynamic> fileContentDecoded = jsonDecode(fileContent);
@@ -98,7 +98,7 @@ class AddTask {
           "name": ItemName,
           "id": 1,
           "createdAt": "${taskBirth.year}-${taskBirth.month}-${taskBirth.day}",
-          "deadline": HandleGetDate(itemDeadline),
+          "deadline": getDate(itemDeadline),
         };
 
         fileContentDecoded.add(taskContent);
@@ -119,7 +119,7 @@ class DeleteTask {
 
   DeleteTask(this.listName, this.taskId);
 
-  void HandleDeleteTask() async {
+  void deleteTask() async {
     try {
       final File file = File(
         './lists/${normalizeStrings(listName)}.json',
@@ -150,7 +150,7 @@ class AddDeadline {
 
   AddDeadline(this.fileName, this.itemDeadline, this.itemId);
 
-  void HandleAddDealine() async {
+  void addDealine() async {
     try {
       File file = File('./lists/$fileName.json');
 
@@ -160,7 +160,7 @@ class AddDeadline {
       final List<dynamic> updatedList =
           decodedSource.map((item) {
             if (item["id"] == num.parse(itemId)) {
-              item["deadline"] = HandleGetDate(itemDeadline);
+              item["deadline"] = getDate(itemDeadline);
               return item;
             }
             ;
@@ -180,7 +180,7 @@ class CreateList {
 
   CreateList(this.listName);
 
-  Future HandleCreateList() async {
+  Future createList() async {
     try {
       final File list = File('./lists/${this.listName}.json');
       final String defaultListValue = jsonEncode([]);
