@@ -13,7 +13,7 @@ void main(List<String> arguments) {
 
 class Application {
   final List<String> arguments;
-  late Object operation;
+  late final Object operation;
 
   Application(this.arguments);
 
@@ -21,26 +21,14 @@ class Application {
     try {
       switch (arguments[0]) {
         case "add":
-          AddTask operation = AddTask(arguments[1], arguments[2], arguments[3]);
-          operation.addTask();
+          AddTask(arguments[1], arguments[2], arguments[3]).addTask();
         case "delete":
-          DeleteTask operation = DeleteTask(
-            arguments[1],
-            int.parse(arguments[2]),
-          );
-          operation.deleteTask();
+          DeleteTask(arguments[1],int.parse(arguments[2])).deleteTask();
         case "deadline":
-          AddDeadline instance = AddDeadline(
-            arguments[1],
-            arguments[2],
-            arguments[3],
-          );
-
-          instance.addDealine();
+          AddDeadline(arguments[1],arguments[2],arguments[3]).addDealine();
         default:
-          throw "None correspondent operation";
-      }
-      ;
+          print("❌ Invalid operation");
+      };
     } catch (err, stack) {
       throw "❗❗❗ An error ocurried: ➡️ $err ➡️ $stack";
     }
