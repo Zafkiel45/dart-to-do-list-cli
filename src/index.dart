@@ -42,8 +42,6 @@ class Application {
     try {
       switch (arguments[0]) {
         case "add":
-          if (arguments[3].isEmpty) arguments[3] = "";
-
           AddTask operation = AddTask(arguments[1], arguments[2], arguments[3]);
           operation.HandleAddTask();
         case "delete":
@@ -52,6 +50,14 @@ class Application {
             int.parse(arguments[2]),
           );
           operation.HandleDeleteTask();
+        case "deadline":
+          AddDeadline instance = AddDeadline(
+            arguments[1],
+            arguments[2],
+            arguments[3],
+          );
+
+          instance.HandleAddDealine();
         default:
           throw "None correspondent operation";
       }
@@ -155,7 +161,37 @@ class DeleteTask with NormalizeStrings {
   }
 }
 
-class AddDeadline {}
+class AddDeadline {
+  final String fileName;
+  final String itemId;
+  final String itemDeadline;
+
+  AddDeadline(this.fileName, this.itemDeadline, this.itemId);
+
+  void HandleAddDealine() async {
+    try {
+      File file = File('./lists/$fileName.json');
+
+      final String source = await file.readAsString();
+      final List<dynamic> decodedSource = json.decode(source);
+
+      final List<dynamic> updatedList =
+          decodedSource.map((item) {
+            if (item["id"] == num.parse(itemId)) {
+              item["deadline"] = HandleGetDate(itemDeadline);
+              return item;
+            }
+            ;
+
+            return item;
+          }).toList();
+
+      await file.writeAsString(jsonEncode(updatedList));
+    } catch (err, stack) {
+      throw "An error ocurried: $err, $stack";
+    }
+  }
+}
 
 class CreateList {
   final String listName;
